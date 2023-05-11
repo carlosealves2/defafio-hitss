@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres-service
+    restart: always
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: 9dPaB2u6Z%&A7#%
+      POSTGRES_DB: desafiohitss
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: rabbitmq-service
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rbt-user
+      RABBITMQ_DEFAULT_PASS: a*37^Qm2RVpd#2!
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rbtmq-data:/var/lib/rabbitmq
+
+volumes:
+  pg-data:
+    driver: local
+  rbtmq-data:
+    driver: local
