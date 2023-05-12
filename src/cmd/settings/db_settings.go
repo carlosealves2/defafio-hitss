@@ -32,7 +32,7 @@ func init() {
 	DbConn = conn
 }
 
-// function to collect database crendentials from environment
+// GetDSN function to collect database crendentials from environment
 // and return a DSN string to connection
 func (p *PostgresCredential) GetDSN() string {
 	databaseUrl := os.Getenv("DATABASE_URL")
@@ -52,10 +52,11 @@ func (p *PostgresCredential) GetDSN() string {
 	p.user = os.Getenv("DB_USER")
 	p.pass = os.Getenv("DB_PASS")
 	p.dbName = os.Getenv("DB_NAME")
-
-	return fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", p.host, p.port, p.dbName, p.user, p.pass)
+	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", p.host, p.port, p.dbName, p.user, p.pass)
+	return dsn
 }
 
+// NewPostgresConnection this function is responsible for creating a new postgres database connection object
 func NewPostgresConnection() (*sql.DB, error) {
 	postgres := PostgresCredential{}
 	conn, err := sql.Open("postgres", postgres.GetDSN())
