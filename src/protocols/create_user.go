@@ -7,4 +7,6 @@ import (
 
 type ICreateUserService interface {
 	Create(ctx context.Context, user postgres.CreateUserParams) error
+	Validate(user postgres.CreateUserParams) error
+	ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string) postgres.CreateUserParams
 }

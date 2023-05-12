@@ -16,18 +16,14 @@ func NewProcessUserData() *CreateUserService {
 }
 
 func (p *CreateUserService) Create(ctx context.Context, user postgres.CreateUserParams) error {
-	if err := p.validate(user); err != nil {
-		return err
-	}
-
-	_, err := p.userServices.CreateUser(ctx, user)
+	_, err := p.userServices.CreateUser(ctx, ofuscateData)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *CreateUserService) validate(user postgres.CreateUserParams) error {
+func (p *CreateUserService) Validate(user postgres.CreateUserParams) error {
 
 	if (user.Name == "" || user.Surname == "") || (validators.InvalidChar(user.Name) || validators.InvalidChar(user.Surname)) {
 		return &cerrors.InvalidNameOrSurnameError{}
@@ -50,4 +46,32 @@ func (p *CreateUserService) validate(user postgres.CreateUserParams) error {
 	}
 
 	return nil
+}
+
+func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string) postgres.CreateUserParams {
+	var obfuscateData postgres.CreateUserParams
+
+	for _, s := range fields {
+		switch s {
+		case "Name":
+			obfuscateData.Name = user.Name
+			break
+		case "Surname":
+			obfuscateData.Surname = user.Surname
+			break
+		case "Contact":
+			obfuscateData.Contact = user.Contact
+			break
+		case "Address":
+			obfuscateData.Address = user.Address
+			break
+		case "Birth":
+			obfuscateData.Birth = user.Birth
+			break
+		case "Cpf":
+			obfuscateData.Cpf = user.Cpf
+			break
+		}
+	}
+	return obfuscateData
 }

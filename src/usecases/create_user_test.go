@@ -29,7 +29,7 @@ func TestProcessUserData_validate_ReturnFalse_WhenAnInvalidUserModelIsChecked(t 
 	}
 
 	for _, d := range testData {
-		err := instance.validate(d.model)
+		err := instance.Validate(d.model)
 		if err != nil {
 			assert.EqualError(t, err, d.expected.Error())
 		} else {
