@@ -1,6 +1,7 @@
 package encrypter
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -32,6 +33,7 @@ func (e Encrypter) Encrypt(plaintext string) (string, error) {
 
 	rawtext := []byte(plaintext)
 
+	// Padding the text with padding to be a multiple of the block size
 	padded := make([]byte, len(rawtext)+(aes.BlockSize-len(rawtext)%aes.BlockSize))
 	copy(padded, rawtext)
 
@@ -45,6 +47,27 @@ func (e Encrypter) Encrypt(plaintext string) (string, error) {
 }
 
 func (e Encrypter) Decrypt(encryptedText string) (string, error) {
-	//TODO implement me
-	panic("implement me")
+	key := []byte(os.Getenv("SECRET"))
+
+	decoded, err := base64.StdEncoding.DecodeString(encryptedText)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	iv := decoded[:aes.BlockSize]
+	ciphertext := decoded[aes.BlockSize:]
+
+	mode := cipher.NewCBCDecrypter(block, iv)
+
+	plaintext := make([]byte, len(ciphertext))
+	mode.CryptBlocks(plaintext, ciphertext)
+
+	// Remove padding from text
+	unpadded := bytes.TrimRight(plaintext, "\x00")
+	return string(unpadded), nil
 }
