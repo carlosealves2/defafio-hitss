@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/suportebeloj/desafio-hitss/src/cmd/settings"
 	"github.com/suportebeloj/desafio-hitss/src/db/postgres"
 )
 
@@ -11,14 +12,19 @@ type AmqpServiceProducer struct {
 	ch *amqp.Channel
 }
 
-func NewAmqpServiceProducer(conn *amqp.Connection) *AmqpServiceProducer {
+func NewAmqpServiceProducer() *AmqpServiceProducer {
 	service := &AmqpServiceProducer{}
-	service.connect(conn)
+	service.connect()
 	return service
 }
 
-func (c *AmqpServiceProducer) connect(conn *amqp.Connection) error {
-	ch, err := conn.Channel()
+func (c *AmqpServiceProducer) connect() error {
+	amqpConn, err := settings.NewAmqpConn()
+	if err != nil {
+		return err
+	}
+
+	ch, err := amqpConn.Conn.Channel()
 	if err != nil {
 		return err
 	}
