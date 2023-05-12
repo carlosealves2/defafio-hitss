@@ -2,21 +2,26 @@ package usecases
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/suportebeloj/desafio-hitss/src/db/postgres"
+	"github.com/suportebeloj/desafio-hitss/src/protocols"
 	"github.com/suportebeloj/desafio-hitss/src/utils/cerrors"
 	"github.com/suportebeloj/desafio-hitss/src/utils/validators"
 )
 
 type CreateUserService struct {
-	userServices *postgres.Queries
+	userServices   *postgres.Queries
+	encryptService protocols.IEncrypterService
 }
 
-func NewProcessUserData() *CreateUserService {
-	return &CreateUserService{}
+func NewProcessUserData(encryptService protocols.IEncrypterService) *CreateUserService {
+	return &CreateUserService{
+		encryptService: encryptService,
+	}
 }
 
 func (p *CreateUserService) Create(ctx context.Context, user postgres.CreateUserParams) error {
-	_, err := p.userServices.CreateUser(ctx, ofuscateData)
+	_, err := p.userServices.CreateUser(ctx, user)
 	if err != nil {
 		return err
 	}
@@ -48,30 +53,47 @@ func (p *CreateUserService) Validate(user postgres.CreateUserParams) error {
 	return nil
 }
 
-func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string) postgres.CreateUserParams {
-	var obfuscateData postgres.CreateUserParams
+// ObfuscateInformation this function encrypts sensitive data entered by the user through
+// the fields argument (all fields must be written as they are defined in the model)
+func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string) (*postgres.CreateUserParams, error) {
+	obfuscate := map[string]any{}
 
-	for _, s := range fields {
-		switch s {
-		case "Name":
-			obfuscateData.Name = user.Name
-			break
-		case "Surname":
-			obfuscateData.Surname = user.Surname
-			break
-		case "Contact":
-			obfuscateData.Contact = user.Contact
-			break
-		case "Address":
-			obfuscateData.Address = user.Address
-			break
-		case "Birth":
-			obfuscateData.Birth = user.Birth
-			break
-		case "Cpf":
-			obfuscateData.Cpf = user.Cpf
-			break
-		}
+	useJson, err := json.Marshal(user)
+	if err != nil {
+		return nil, err
 	}
-	return obfuscateData
+
+	if err = json.Unmarshal(useJson, &obfuscate); err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(fields); i++ {
+		field := fields[i]
+		encoded, err := p.encryptService.Encrypt(obfuscate[field].(string))
+		if err != nil {
+			return nil, err
+		}
+		obfuscate[field] = encoded
+	}
+
+	obfuscateData := &postgres.CreateUserParams{}
+	err = MapToStruct(obfuscate, obfuscateData)
+	if err != nil {
+		return nil, err
+	}
+
+	return obfuscateData, nil
+}
+
+func MapToStruct(m map[string]interface{}, s interface{}) error {
+	j, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(j, s)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
