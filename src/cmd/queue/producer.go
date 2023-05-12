@@ -26,7 +26,7 @@ func (c *AmqpServiceProducer) connect(conn *amqp.Connection) error {
 	return nil
 }
 
-func (c *AmqpServiceProducer) SendUser(ctx context.Context, queueName string, user postgres.User) error {
+func (c *AmqpServiceProducer) SendUser(ctx context.Context, queueName string, user postgres.CreateUserParams) error {
 	defer c.ch.Close()
 	q, err := c.ch.QueueDeclare(
 		queueName,
@@ -39,13 +39,14 @@ func (c *AmqpServiceProducer) SendUser(ctx context.Context, queueName string, us
 	if err != nil {
 		return err
 	}
+
 	body, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
 
 	err = c.ch.PublishWithContext(ctx,
-		"test-exchange",
+		"",
 		q.Name,
 		false,
 		false,
