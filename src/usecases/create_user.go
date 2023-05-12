@@ -10,12 +10,13 @@ import (
 )
 
 type CreateUserService struct {
-	userServices   *postgres.Queries
+	userServices   protocols.IDBService
 	encryptService protocols.IEncrypterService
 }
 
-func NewProcessUserData(encryptService protocols.IEncrypterService) *CreateUserService {
+func NewProcessUserData(userService protocols.IDBService, encryptService protocols.IEncrypterService) *CreateUserService {
 	return &CreateUserService{
+		userServices:   userService,
 		encryptService: encryptService,
 	}
 }
@@ -55,7 +56,7 @@ func (p *CreateUserService) Validate(user postgres.CreateUserParams) error {
 
 // ObfuscateInformation this function encrypts sensitive data entered by the user through
 // the fields argument (all fields must be written as they are defined in the model)
-func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string) (*postgres.CreateUserParams, error) {
+func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postgres.CreateUserParams, fields []string, direction int) (*postgres.CreateUserParams, error) {
 	obfuscate := map[string]any{}
 
 	useJson, err := json.Marshal(user)
@@ -68,11 +69,20 @@ func (p *CreateUserService) ObfuscateInformation(ctx context.Context, user postg
 	}
 	for i := 0; i < len(fields); i++ {
 		field := fields[i]
-		encoded, err := p.encryptService.Encrypt(obfuscate[field].(string))
-		if err != nil {
-			return nil, err
+		if direction == 0 {
+			encoded, err := p.encryptService.Encrypt(obfuscate[field].(string))
+			if err != nil {
+				return nil, err
+			}
+			obfuscate[field] = encoded
+		} else {
+			encoded, err := p.encryptService.Decrypt(obfuscate[field].(string))
+			if err != nil {
+				return nil, err
+			}
+			obfuscate[field] = encoded
 		}
-		obfuscate[field] = encoded
+
 	}
 
 	obfuscateData := &postgres.CreateUserParams{}
