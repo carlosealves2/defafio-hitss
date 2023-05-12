@@ -3,6 +3,7 @@ package settings
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
+	"log"
 
 	"fmt"
 	"os"
@@ -16,6 +17,19 @@ type ICredential interface {
 type PostgresCredential struct {
 	host, user, pass, dbName string
 	port                     int
+}
+
+var (
+	DbConn *sql.DB
+)
+
+func init() {
+	conn, err := NewPostgresConnection()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	DbConn = conn
 }
 
 // function to collect database crendentials from environment
