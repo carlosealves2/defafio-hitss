@@ -17,12 +17,12 @@ RETURNING id, name, surname, contact, address, birth, cpf
 `
 
 type CreateUserParams struct {
-	Name    string
-	Surname string
-	Contact string
-	Address string
-	Birth   time.Time
-	Cpf     string
+	Name    string    `json:"name"`
+	Surname string    `json:"surname"`
+	Contact string    `json:"contact"`
+	Address string    `json:"address"`
+	Birth   time.Time `json:"birth"`
+	Cpf     string    `json:"cpf"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -128,13 +128,13 @@ RETURNING id, name, surname, contact, address, birth, cpf
 `
 
 type UpdateUserParams struct {
-	ID      int64
-	Name    string
-	Surname string
-	Contact string
-	Address string
-	Birth   time.Time
-	Cpf     string
+	ID      int64     `json:"id"`
+	Name    string    `json:"name"`
+	Surname string    `json:"surname"`
+	Contact string    `json:"contact"`
+	Address string    `json:"address"`
+	Birth   time.Time `json:"birth"`
+	Cpf     string    `json:"cpf"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

@@ -9,11 +9,11 @@ import (
 )
 
 type User struct {
-	ID      int64
-	Name    string
-	Surname string
-	Contact string
-	Address string
-	Birth   time.Time
-	Cpf     string
+	ID      int64     `json:"id"`
+	Name    string    `json:"name"`
+	Surname string    `json:"surname"`
+	Contact string    `json:"contact"`
+	Address string    `json:"address"`
+	Birth   time.Time `json:"birth"`
+	Cpf     string    `json:"cpf"`
 }

@@ -6,4 +6,5 @@ sql:
     gen:
       go:
         package: "postgres"
+        emit_json_tags: true
         out: "src/db/postgres"
