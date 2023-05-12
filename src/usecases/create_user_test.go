@@ -1,15 +1,18 @@
 package usecases
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"github.com/suportebeloj/desafio-hitss/src/db/postgres"
 	"github.com/suportebeloj/desafio-hitss/src/utils/cerrors"
+	"github.com/suportebeloj/desafio-hitss/src/utils/encrypter"
 	"testing"
 	"time"
 )
 
 func TestProcessUserData_validate_ReturnFalse_WhenAnInvalidUserModelIsChecked(t *testing.T) {
-	instance := NewProcessUserData()
+	encrypterService := encrypter.NewEncrypter()
+	instance := NewProcessUserData(encrypterService)
 
 	testData := []struct {
 		expected error
@@ -37,4 +40,25 @@ func TestProcessUserData_validate_ReturnFalse_WhenAnInvalidUserModelIsChecked(t 
 		}
 
 	}
+}
+
+func TestProcessUserData_ObfuscateInformation_ReturnAValidStruct(t *testing.T) {
+
+	user := postgres.CreateUserParams{
+		Name:    "Carlos",
+		Surname: "Alves",
+		Contact: "234234",
+		Address: "rua 3, n 100",
+		Birth:   time.Now(),
+		Cpf:     "123.333.222-22",
+	}
+	encrypterService := encrypter.NewEncrypter()
+	instance := NewProcessUserData(encrypterService)
+	obfuscate, err := instance.ObfuscateInformation(context.Background(), user, []string{"surname", "contact", "address", "cpf"})
+	assert.NoError(t, err)
+	assert.NotNil(t, obfuscate)
+	assert.NotEqual(t, obfuscate.Surname, user.Surname)
+	assert.NotEqual(t, obfuscate.Contact, user.Contact)
+	assert.NotEqual(t, obfuscate.Cpf, user.Cpf)
+	assert.NotEqual(t, obfuscate.Address, user.Address)
 }
