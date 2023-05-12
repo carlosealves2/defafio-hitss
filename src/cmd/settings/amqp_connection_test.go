@@ -7,7 +7,8 @@ import (
 )
 
 func TestAmqpConn_ConnectWithDocker(t *testing.T) {
-	amqpConn, _ := NewAmqpConn()
+	amqpConn, err := NewAmqpConn()
+	assert.NoError(t, err)
 	defer amqpConn.Conn.Close()
 	assert.False(t, amqpConn.Conn.IsClosed())
 }
