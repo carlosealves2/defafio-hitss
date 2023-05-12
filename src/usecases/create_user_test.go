@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"github.com/stretchr/testify/assert"
+	"github.com/suportebeloj/desafio-hitss/src/db/mock"
 	"github.com/suportebeloj/desafio-hitss/src/db/postgres"
 	"github.com/suportebeloj/desafio-hitss/src/utils/cerrors"
 	"github.com/suportebeloj/desafio-hitss/src/utils/encrypter"
@@ -12,7 +13,9 @@ import (
 
 func TestProcessUserData_validate_ReturnFalse_WhenAnInvalidUserModelIsChecked(t *testing.T) {
 	encrypterService := encrypter.NewEncrypter()
-	instance := NewProcessUserData(encrypterService)
+	mockDbService := mock.NewMockDbService()
+
+	instance := NewProcessUserData(mockDbService, encrypterService)
 
 	testData := []struct {
 		expected error
@@ -53,8 +56,9 @@ func TestProcessUserData_ObfuscateInformation_ReturnAValidStruct(t *testing.T) {
 		Cpf:     "123.333.222-22",
 	}
 	encrypterService := encrypter.NewEncrypter()
-	instance := NewProcessUserData(encrypterService)
-	obfuscate, err := instance.ObfuscateInformation(context.Background(), user, []string{"surname", "contact", "address", "cpf"})
+	mockDbService := mock.NewMockDbService()
+	instance := NewProcessUserData(mockDbService, encrypterService)
+	obfuscate, err := instance.ObfuscateInformation(context.Background(), user, []string{"surname", "contact", "address", "cpf"}, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, obfuscate)
 	assert.NotEqual(t, obfuscate.Surname, user.Surname)
